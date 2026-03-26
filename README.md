@@ -203,12 +203,75 @@ See `check-one/DEMO_PROJECTS.txt` for one-liners.
 
 ---
 
-## Building customer C/C++
+## How to run the code (all languages)
 
-After injection, compile as usual but link **libcrypto** when the guard includes OpenSSL, for example:
+Assume you are in the **repository root** (the folder that contains `engine.py`). Replace `/path/to/repo` if you keep the project elsewhere.
+
+### Engine & web UI (Python)
+
+| What | Command |
+|------|---------|
+| Engine CLI (inject / verify / etc.) | `python3 engine.py` *(see [Inject & check](#inject--check-short))* |
+| Web injector | `pip install flask` then `python3 web_injector.py` → open `http://127.0.0.1:5000` |
+
+### Single file at repo root (example)
+
+| What | Command |
+|------|---------|
+| Hello-world script | `python3 testpython.py` |
+
+### Demo: `check-one/universal_profile_app/` (User + BMI sample)
+
+Use **`cd`** into each language folder first so imports / paths work.
+
+| Language | Commands |
+|----------|----------|
+| **Python** | `cd check-one/universal_profile_app/python` then `python3 main.py` |
+| **JavaScript (Node)** | `cd check-one/universal_profile_app/node` then `node main.js` |
+| **Java** | `cd check-one/universal_profile_app/java` then `javac -d out src/model/User.java src/service/BMIService.java src/util/InputUtil.java src/Main.java` then `java -cp out Main` |
+| **C++** | `cd check-one/universal_profile_app/cpp` then `g++ -std=c++17 -o app main.cpp` then `./app` |
+| **C# (Mono)** | `cd check-one/universal_profile_app/csharp` then `mcs -out:app.exe Models/User.cs Services/BMIService.cs Utils/ConsoleUtil.cs Program.cs` then `mono app.exe` |
+| **C# (.NET SDK)** | `cd check-one/universal_profile_app/csharp` — create/use a console project that includes those `.cs` files, then `dotnet run` |
+| **PHP** (CLI; needs `readline`) | `cd check-one/universal_profile_app/php` then `php index.php` |
+
+**C** (supported by the engine; no sample app in `universal_profile_app`): compile your `.c` files with `gcc`, e.g. `gcc -std=c11 -o app main.c` then `./app`. After injection, add **`-lcrypto`** if the guard uses OpenSSL.
+
+One-liner style from repo root (non-interactive test with piped input):
+
+```bash
+printf 'Ada\n30\n70\n170\n' | python3 check-one/universal_profile_app/python/main.py
+printf 'Ada\n30\n70\n170\n' | node check-one/universal_profile_app/node/main.js
+printf 'Ada\n30\n70\n170\n' | php check-one/universal_profile_app/php/index.php
+```
+
+### Demo: `check-one/simple_project/` (Python only)
+
+| Command |
+|---------|
+| `cd check-one/simple_project && python3 main.py` |
+
+### Demo: `check-one/full_test_app/` (Python only)
+
+| Command |
+|---------|
+| `cd check-one/full_test_app && python3 main.py` |
+
+### C / C++ after **hash injection** (OpenSSL guard)
+
+If the engine embedded the C/C++ runtime guard, link **libcrypto**:
 
 ```bash
 g++ -std=c++17 -o app main.cpp -lcrypto
+gcc -o app main.c other.c -lcrypto
+```
+
+### Java / C# **customer folder** builds
+
+If you used `--generate-folder`, run programs with the **customer folder** as the **current working directory** so embedded relative paths resolve, for example:
+
+```bash
+cd my_project_customer
+java -cp java/out Main
 ```
 
 ---
