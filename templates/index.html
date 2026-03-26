@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Engine Web Injector</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 16px 24px;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 8px 0 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .panel {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .muted {
+      color: #9ca3af;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .error {
+      background: #3f1d1d;
+      border: 1px solid #7f1d1d;
+      color: #fecaca;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    input[type=file] {
+      width: 100%;
+      margin-bottom: 10px;
+      color: #d1d5db;
+    }
+    select {
+      width: 100%;
+      margin-bottom: 10px;
+      color: #d1d5db;
+      background: #0b1220;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    button, .download {
+      display: inline-block;
+      border: 0;
+      background: #2563eb;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    button:hover, .download:hover {
+      background: #1d4ed8;
+    }
+    pre {
+      background: #0b1220;
+      border: 1px solid #263244;
+      border-radius: 8px;
+      padding: 10px;
+      overflow: auto;
+      white-space: pre-wrap;
+      min-height: 300px;
+      max-height: 560px;
+    }
+    .history {
+      margin-top: 16px;
+      border-top: 1px solid #374151;
+      padding-top: 12px;
+    }
+    .history-item {
+      background: #0b1220;
+      border: 1px solid #263244;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .ok { color: #86efac; }
+    .err { color: #fca5a5; }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="title">Engine Web Injector</div>
+    <div class="grid">
+      <section class="panel">
+        <h2>Input</h2>
+        <div class="muted">Upload a source file or ZIP. Choose Inject or Reverse.</div>
+        {% if error %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+          <select name="action">
+            <option value="inject" {% if action == "inject" %}selected{% endif %}>Inject</option>
+            <option value="reverse" {% if action == "reverse" %}selected{% endif %}>Reverse</option>
+            <option value="verify" {% if action == "verify" %}selected{% endif %}>Check Health</option>
+          </select>
+          <input type="file" name="source_file" required>
+          <button type="submit">Run</button>
+        </form>
+        <h2 style="margin-top:16px;">Source Preview</h2>
+        <pre>{{ source_preview if source_preview else "No source loaded yet." }}</pre>
+      </section>
+
+      <section class="panel">
+        <h2>Output</h2>
+        <div class="muted">Inject/Reverse returns ZIP. Check Health returns a report.</div>
+        {% if output_stored_name and output_filename %}
+          <a class="download" href="{{ url_for('download', stored_name=output_stored_name) }}">
+            Download {{ output_filename }}
+          </a>
+        {% endif %}
+        <h2 style="margin-top:16px;">Injection Summary</h2>
+        <pre>{{ result_summary if result_summary else "No generated file yet." }}</pre>
+
+        <div class="history">
+          <h2>Recent History</h2>
+          {% if history_items %}
+            {% for item in history_items %}
+              <div class="history-item">
+                <div><strong>{{ item.time }}</strong> - {{ item.action|upper }}</div>
+                <div>Input: {{ item.input }}</div>
+                <div>Status:
+                  <span class="{{ 'ok' if item.status == 'success' else 'err' }}">{{ item.status }}</span>
+                </div>
+                {% if item.output %}
+                  <div>Output: {{ item.output }}</div>
+                {% endif %}
+                <div>{{ item.message }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="muted">No history yet.</div>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
+
